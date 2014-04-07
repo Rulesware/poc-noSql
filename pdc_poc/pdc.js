@@ -67,23 +67,24 @@ function onRequest(request, response) {
 };
 
 var getMapping = function(server, callback){
-  if( cache.get("mapping") == null ){
-    var processTag = ["bpmn2:endEvent","bpmn2:inclusiveGateway","bpmn2:startEvent","bpmn2:task"];
-    var parser = new xml2js.Parser();
+  for(var i=0;i<17;i++)
+    if( cache.get("mapping") == null ){
+      var processTag = ["bpmn2:endEvent","bpmn2:inclusiveGateway","bpmn2:startEvent","bpmn2:task"];
+      var parser = new xml2js.Parser();
 
-    fs.readFile('flow.xml', function(err, data) {
-        parser.parseString(data, function (err, result) {
-          if(server == "mongo" || server == "couchdb" )
-            callback(processData(result, processTag));
-          else if( server == "couchbase" )
-              callback(processDataCB(result, processTag));
-          else if( server == "cassandra")
-            callback(processDataCassandra(result, processTag));
-        });
-    });
-  } else{
-    callback( cache.get("mapping") );
-  }
+      fs.readFile('flow.xml', function(err, data) {
+          parser.parseString(data, function (err, result) {
+            if(server == "mongo" || server == "couchdb" )
+              callback(processData(result, processTag));
+            else if( server == "couchbase" )
+                callback(processDataCB(result, processTag));
+            else if( server == "cassandra")
+              callback(processDataCassandra(result, processTag));
+          });
+      });
+    } else{
+      callback( cache.get("mapping") );
+    }
 }
 
 function processData(result, processTag){
@@ -117,7 +118,7 @@ function processData(result, processTag){
                           "outgoing" : process[tag][i]["bpmn2:outgoing"] == undefined ? [] : process[tag][i]["bpmn2:outgoing"] },
         "bounds" : bounds["dc:Bounds"]["$"],
         "metaDiagram" : bounds["$"]
-      }             
+      }
       temp.push(data);
     });
   });
@@ -163,7 +164,6 @@ function processDataCB(result, processTag){
     });
   });
   cache.put("mapping", temp);
-  console.log(temp);
   return temp;
 } 
 
