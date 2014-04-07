@@ -11,38 +11,41 @@ var Guid = require('guid');
 var cql = require('node-cassandra-cql');
 
 function onRequest(request, response) {
- 	var db = mongoose.createConnection('mongodb://pdc.rulesware.com/poc');
- 	var dbCouchbase  = new couchbase.Connection({host: "pdc.rulesware.com:8091", bucket: 'pdc', password: 'pdc'});  
-	var dbCouchdb = nano.db.use("pdc_poc");
-  var dbCassandra = new cql.Client({hosts: ['192.168.212.139:9042'], keyspace: 'test',username:'cassandra',password:'cassandra'});
-
-  if(request.url == "/mongo")
+  if(request.url == "/mongo"){
+    var db = mongoose.createConnection('mongodb://pdc.rulesware.com/poc');
     getMapping("mongo", function(x){
         db.collection('poc').insert(x, function(obj){
           finishRequest(response, "data inserted into mongodb!");
         });
     });
+  }
 
-  if(request.url == "/couchdb" )
+  if(request.url == "/couchdb" ){
+    var dbCouchdb = nano.db.use("pdc_poc");    
     getMapping("couchdb", function(x){
-      dbCouchdb.bulk({"docs": x}, function(e,resData){
+      dbCouchdb.bulk({"docs": x}, function(){
         finishRequest(response, "data inserted into couchdb!");
       });
     });    
+  }
 
-  if(request.url == "/couchbase")
+  if(request.url == "/couchbase"){
+    var dbCouchbase  = new couchbase.Connection({host: "pdc.rulesware.com:8091", bucket: 'pdc', password: 'pdc'});
     getMapping("couchbase", function(x){
-      dbCouchbase.setMulti( x , {}, function(err, results) {
+      dbCouchbase.setMulti( x , {}, function(err) {
         if (err) console.log(err); else finishRequest(response, "data inserted into couchbase!");;
       });
-    });    
+    });
+  }
 
-  if(request.url == "/cassandra")
+  if(request.url == "/cassandra"){
+    var dbCassandra = new cql.Client({hosts: ['192.168.212.139:9042'], keyspace: 'test',username:'cassandra',password:'cassandra'});
      getMapping("cassandra", function(x){
       dbCassandra.executeBatch (x, 1, {}, function(err) {
         if (err) console.log(err); else finishRequest(response, "data inserted into cassandra!");         
      });
     });
+  }
 };
 
 var getMapping = function(server, callback){
@@ -82,10 +85,10 @@ function processData(result, processTag, server){
           })
         });
 
-      var _id = mongoose.Types.ObjectId();
+      var _id = Guid.raw();
       var data = (server != "cassandra") ? {
                                               "_id": _id,
-                                              "id" : Guid.raw(),
+                                              "id" : _id,
                                               "metaData" : process[tag][i]["$"],
                                               "shapeType" : tag,
                                               "hash" : hashInfo,
