@@ -11,7 +11,6 @@ var Guid = require('guid');
 var cql = require('node-cassandra-cql');
 
 function onRequest(request, response) {
-
  	var db = mongoose.createConnection('mongodb://pdc.rulesware.com/poc');
  	var dbCouchbase  = new couchbase.Connection({host: "pdc.rulesware.com:8091", bucket: 'pdc', password: 'pdc'});  
 	var dbCouchdb = nano.db.use("pdc_poc");
@@ -19,39 +18,34 @@ function onRequest(request, response) {
 
   if(request.url == "/mongo")
     getMapping("mongo", function(x){
-        db.collection('poc').insert(x,function(obj){
-          console.log("data inserted into mongodb!");
+        db.collection('poc').insert(x, function(obj){
+          finishRequest(response, "data inserted into mongodb!");
         });
     });
 
   if(request.url == "/couchdb" )
     getMapping("couchdb", function(x){
-      dbCouchdb.bulk({"docs": x},function(e,resData){
-        console.log("data inserted into couchdb!");
+      dbCouchdb.bulk({"docs": x}, function(e,resData){
+        finishRequest(response, "data inserted into couchdb!");
       });
     });    
 
   if(request.url == "/couchbase")
     getMapping("couchbase", function(x){
       dbCouchbase.setMulti( x , {}, function(err, results) {
-        if (err) console.log(err); else console.log("data inserted into couchbase!");
+        if (err) console.log(err); else finishRequest(response, "data inserted into couchbase!");;
       });
     });    
 
   if(request.url == "/cassandra")
      getMapping("cassandra", function(x){
       dbCassandra.executeBatch (x, 1, {}, function(err) {
-        if (err) console.log(err); else console.log("data inserted into cassandra!");         
+        if (err) console.log(err); else finishRequest(response, "data inserted into cassandra!");         
      });
     });
-
-  response.writeHead(200, {"Content-Type": "text/plain"});
-	response.write("write done");
-	response.end();
 };
 
 var getMapping = function(server, callback){
-  for(var i=0;i<17;i++)
     if( cache.get("mapping") == null ){
       var processTag = ["bpmn2:endEvent","bpmn2:inclusiveGateway","bpmn2:startEvent","bpmn2:task"];
       var parser = new xml2js.Parser();
@@ -72,6 +66,7 @@ function processData(result, processTag, server){
   var temp = getType(server);
 
   var process = result["bpmn2:definitions"]["process"][0]["bpmn2:process"][0];
+  for(var i=0;i<17;i++)
   _.each(processTag, function(tag){
     _.each(process[tag], function(t,i){
       var shapes = result["bpmn2:definitions"]["process"][0]["bpmndi:BPMNDiagram"][0]["bpmndi:BPMNPlane"][0]["bpmndi:BPMNShape"];
@@ -117,6 +112,13 @@ function getType(server){
     default:
       return [];
   }
+}
+
+function finishRequest(response, message){
+  console.log(message);
+  response.writeHead(200, {"Content-Type": "text/plain"});
+  response.write(message);
+  response.end();
 }
 
 var server = http.createServer(onRequest);
