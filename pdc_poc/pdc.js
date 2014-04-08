@@ -1,7 +1,7 @@
 var http = require("http");
 var mongoose = require('mongoose');
 var couchbase = require('couchbase');
-var nano = require('nano')('http://pdc.rulesware.com:5984');
+var nano = require('nano')('http://192.168.212.139:5984');
 var fs = require('fs'), xml2js = require('xml2js');
 var reader = require ("buffered-reader");
 var _ = require("underscore");
@@ -11,51 +11,61 @@ var Guid = require('guid');
 var cql = require('node-cassandra-cql');
 
 function onRequest(request, response) {
+  var processTag = ["bpmn2:endEvent","bpmn2:inclusiveGateway","bpmn2:startEvent","bpmn2:task"];
+
   if(request.url == "/mongo"){
-    var db = mongoose.createConnection('mongodb://pdc.rulesware.com/poc');
-    getMapping("mongo", function(x){
-        db.collection('poc').insert(x, function(obj){
+    var db = mongoose.createConnection('mongodb://localhost/poc');
+    getMapping(function(x){
+        var insert  = processData( x, processTag, "mongo");
+        db.collection('poc').insert(insert, function(err){
           finishRequest(response, "data inserted into mongodb!");
+          if(err) console.log(err);
         });
     });
   }
 
   if(request.url == "/couchdb" ){
     var dbCouchdb = nano.db.use("pdc_poc");    
-    getMapping("couchdb", function(x){
-      dbCouchdb.bulk({"docs": x}, function(){
-        finishRequest(response, "data inserted into couchdb!");
+    getMapping(function(x){
+      var insert  = processData( x, processTag, "couchdb");
+      dbCouchdb.bulk({"docs": insert}, function(err){
+        if(err) console.log(err);
+        else finishRequest(response, "data inserted into couchdb!");
       });
     });    
   }
 
+  var dbCouchbase  = new couchbase.Connection({host: "192.168.212.139:8091", bucket: 'pdc2', password: 'pdc'});
   if(request.url == "/couchbase"){
-    var dbCouchbase  = new couchbase.Connection({host: "pdc.rulesware.com:8091", bucket: 'pdc', password: 'pdc'});
-    getMapping("couchbase", function(x){
-      dbCouchbase.setMulti( x , {}, function(err) {
-        if (err) console.log(err); else finishRequest(response, "data inserted into couchbase!");;
+    getMapping(function(x){
+      var insert  = processData( x, processTag, "couchbase");
+      dbCouchbase.setMulti( insert , {}, function(err) {
+        console.log(err);
+        finishRequest(response, "data inserted into couchbase!");;
       });
     });
   }
 
   if(request.url == "/cassandra"){
-    var dbCassandra = new cql.Client({hosts: ['192.168.212.139:9042'], keyspace: 'test',username:'cassandra',password:'cassandra'});
-     getMapping("cassandra", function(x){
-      dbCassandra.executeBatch (x, 1, {}, function(err) {
-        if (err) console.log(err); else finishRequest(response, "data inserted into cassandra!");         
+    var dbCassandra = new cql.Client({hosts: ['localhost:9042'], keyspace: 'test',username:'cassandra',password:'cassandra'});
+     getMapping(function(x){
+      var insert  = processData( x, processTag, "cassandra");
+      dbCassandra.executeBatch (insert, 1, {}, function(err) {
+        finishRequest(response, "data inserted into cassandra!");         
      });
     });
   }
 };
 
-var getMapping = function(server, callback){
-    if( cache.get("mapping") == null ){
-      var processTag = ["bpmn2:endEvent","bpmn2:inclusiveGateway","bpmn2:startEvent","bpmn2:task"];
+var getMapping = function(callback){
+    if( cache.get("mapping") == null ){      
       var parser = new xml2js.Parser();
-
       fs.readFile('flow.xml', function(err, data) {
           parser.parseString(data, function (err, result) {
-            callback(processData(result, processTag, server));
+            var jsonFile =  JSON.stringify(result);
+            var newResult = result = JSON.parse(jsonFile);
+            cache.put("mapping", newResult);
+            callback( newResult );
           });
       });
     } else{
@@ -64,12 +74,12 @@ var getMapping = function(server, callback){
 }
 
 function processData(result, processTag, server){
-  var jsonFile =  JSON.stringify(result)  ;
-  result = JSON.parse(jsonFile);
   var temp = getType(server);
+  var proccessGuid = Guid.raw();
+  var limit = Math.random()*900 + 100;
 
   var process = result["bpmn2:definitions"]["process"][0]["bpmn2:process"][0];
-  for(var i=0;i<17;i++)
+  for(var i=0;i<limit;i++)
   _.each(processTag, function(tag){
     _.each(process[tag], function(t,i){
       var shapes = result["bpmn2:definitions"]["process"][0]["bpmndi:BPMNDiagram"][0]["bpmndi:BPMNPlane"][0]["bpmndi:BPMNShape"];
@@ -89,6 +99,7 @@ function processData(result, processTag, server){
       var data = (server != "cassandra") ? {
                                               "_id": _id,
                                               "id" : _id,
+                                              "processId": proccessGuid,
                                               "metaData" : process[tag][i]["$"],
                                               "shapeType" : tag,
                                               "hash" : hashInfo,
@@ -104,7 +115,6 @@ function processData(result, processTag, server){
         temp[_id] = {"value" : data};
     });
   });
-  cache.put("mapping", temp);
   return temp;
 }
 
@@ -118,7 +128,7 @@ function getType(server){
 }
 
 function finishRequest(response, message){
-  console.log(message);
+  //console.log(message);
   response.writeHead(200, {"Content-Type": "text/plain"});
   response.write(message);
   response.end();
