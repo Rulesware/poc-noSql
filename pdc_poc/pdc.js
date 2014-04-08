@@ -10,11 +10,17 @@ var cache = require('memory-cache');
 var Guid = require('guid');
 var cql = require('node-cassandra-cql');
 
+var nodeTime = require('nodetime').profile({
+    accountKey: '477c61a9ca315479a539e2e71562ac2c4dd71e8f', 
+    appName: 'Node.JS LinuxApp'
+  });
+
 function onRequest(request, response) {
+  nodeTime.profile();
   var processTag = ["bpmn2:endEvent","bpmn2:inclusiveGateway","bpmn2:startEvent","bpmn2:task"];
 
   if(request.url == "/mongo"){
-    var db = mongoose.createConnection('mongodb://localhost/poc');
+    var db = mongoose.createConnection('mongodb://192.168.212.139/poc');
     getMapping(function(x){
         var insert  = processData( x, processTag, "mongo");
         db.collection('poc').insert(insert, function(err){
