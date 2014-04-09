@@ -66,8 +66,8 @@ function onRequest(request, response) {
     case ("/select/couchbase"):
       var dbCouchbase  = new couchbase.Connection({host: "192.168.212.139:8091", bucket: 'pdc2', password: 'pdc'});
       var q = {processId : "000f32ff-0ba5-abfd-4a5b-cab0f79a17e3"};
-      dbCouchbase.view('dev_1', 'where').query({ limit: 10, options: q }, function(err, results) {
-        finishRequest(response, JSON.stringify(results) );      
+      dbCouchbase.view('dev_1', 'where').query({ options: q }, function(err, results) {
+        finishRequest(response, JSON.stringify(results.length) );
       });
       break;
 
@@ -75,21 +75,15 @@ function onRequest(request, response) {
       var dbCassandra = new cql.Client({hosts: ['192.168.212.139:9042'], keyspace: 'test',username:'cassandra',password:'cassandra'});
        getMapping(function(x){
        //var query = "select count(*) from tblstorage where processid = 'bdaf4fd7-c482-a3fc-9999-440849436610' ALLOW FILTERING;";
-       var query = "select * from tblstorage where processid = 'bdaf4fd7-c482-a3fc-9999-440849436610' ALLOW FILTERING;";
+       var query = "select count(*) from tblstorage where processid = 'bdaf4fd7-c482-a3fc-9999-440849436610' ALLOW FILTERING;";
        dbCassandra.execute(query, [],
           function(err, result) {
             if (err) console.log(err);
-            else console.log(JSON.stringify( result) );
+            else finishRequest(response, "Total of records: " + result.rows[0].count.low );   
           }
         );
-        /*var insert  = processData( x, processTag, "cassandra");
-        dbCassandra.executeBatch (insert, 1, {}, function(err) {
-          if(err) console.log(err);
-          finishRequest(response, "data inserted into cassandra!");         
-       });*/
-
       });
-      break;
+    break;
 
     default:
       finishRequest(response, "404 Error");
