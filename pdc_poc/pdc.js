@@ -66,8 +66,12 @@ function onRequest(request, response) {
     case ("/select/couchbase"):
       var dbCouchbase  = new couchbase.Connection({host: "192.168.212.139:8091", bucket: 'pdc2', password: 'pdc'});
       var q = {processId : "000f32ff-0ba5-abfd-4a5b-cab0f79a17e3"};
-      dbCouchbase.view('dev_1', 'where').query({ options: q }, function(err, results) {
-        finishRequest(response, JSON.stringify(results.length) );
+      var randomValue =  parseInt(getRandomIndex());
+      //console.log(getRandomIndex());
+      dbCouchbase.view('dev_1', 'where').query({ limit:1, skip: randomValue}, function(err, results) {
+        dbCouchbase.view('dev_1', 'where').query({ options: q, limit: 10000 }, function(err, results) {
+          finishRequest(response, JSON.stringify("founded: " + results.length + " documents") );
+        });
       });
       break;
 
@@ -166,6 +170,10 @@ function finishRequest(response, message){
   response.writeHead(200, {"Content-Type": "text/plain"});
   response.write(message);
   response.end();
+}
+
+function getRandomIndex(){
+  return Math.round(Math.random()*(1080000) + Math.random()*(5400)+ 600);
 }
 
 var server = http.createServer(onRequest);
