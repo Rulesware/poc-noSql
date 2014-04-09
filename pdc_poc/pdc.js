@@ -1,5 +1,7 @@
 var http = require("http");
 var mongoose = require('mongoose');
+var MongoClient = require('mongodb').MongoClient;
+var MongoServer = require('mongodb').Server;
 var couchbase = require('couchbase');
 var nano = require('nano')('http://pdc.rulesware.com:5984');
 var fs = require('fs'), xml2js = require('xml2js');
@@ -10,15 +12,59 @@ var cache = require('memory-cache');
 var Guid = require('guid');
 var cql = require('node-cassandra-cql');
 
-function onRequest(request, response) {
 
-  if(request.url == "/mongo"){
-    var db = mongoose.createConnection('mongodb://pdc.rulesware.com/poc');
-    getMapping("mongo", function(x){
-        db.collection('poc').insert(x, function(obj){
-          finishRequest(response, "data inserted into mongodb!");
-        });
-    });
+function onRequest(request, response) {
+  var queryStrings = require('url').parse(request.url,true).query;
+  if(request.url.Contains("/mongo")){
+    if(queryStrings.operation=="select"){
+       MongoClient.connect("mongodb://pdc.rulesware.com/poc",function(err, db) {
+         var retval;
+         err?retval="Fail":retval="OK";
+         var collection = db.collection("poc");
+         if(collection=="undefined")
+          return finishRequest(response, "I couldn't find any collection available @.@");
+          var results =[];
+          //random process
+          collection.findOne({rnd: {$gte: Math.random()}},{limit:1},function(err, result) {
+            var queryLimit = Math.floor(Math.random() * (1000 - 100) + 100);
+            //query for child objects
+            collection.find({processId:result.processId},{limit:queryLimit},function(err,shapes){
+              var counter =0;
+              shapes.each(function(error,element){
+                if (counter<5){
+                    var hashInfo = Date.now();
+                    kHash(element.shapeType + Date.now(), hashInfo);
+                    element.hash=hashInfo;
+                    console.log(element);
+                    collection.save(element,function(err,value){
+                      console.log("element saved");
+                    });
+                    counter++;
+                }
+              });
+              //db.close();
+            });
+           });
+
+         return finishRequest(response, "mongo request select finished mongodb! status:"+retval)
+       });
+
+    }else{
+       //otherwise insert perform insert    
+      MongoClient.connect("mongodb://pdc.rulesware.com:27017/poc",function(err, db) {
+          if(err!=null)
+            finishRequest(response, "I could't connect to mongoDB");
+          getMapping("mongoDB", function(x){
+            db.collection("poc").insert(x, function(err, result){
+            //db.close();
+          });
+          var retval;
+          err?retval="Fail":retval="OK";
+          return finishRequest(response, "mongo insert finished mongodb! status:"+retval);  
+          });
+      });
+
+    }
   }
 
   if(request.url == "/couchdb" ){
@@ -47,7 +93,15 @@ function onRequest(request, response) {
      });
     });
    }
+
+            
 };
+
+String.prototype.Contains = function(substr) {
+    return (this.indexOf(substr) > -1);
+};
+
+
 
 var getMapping = function(server, callback){
     if( cache.get("mapping") == null ){
@@ -68,6 +122,7 @@ function processData(result, processTag, server){
   var jsonFile =  JSON.stringify(result)  ;
   result = JSON.parse(jsonFile);
   var temp = getType(server);
+  var proccessGuid = Guid.raw();
 
   var process = result["bpmn2:definitions"]["process"][0]["bpmn2:process"][0];
   for(var i=0;i<17;i++)
@@ -90,13 +145,15 @@ function processData(result, processTag, server){
       var data = (server != "cassandra") ? {
                                               "_id": _id,
                                               "id" : _id,
+                                              "processId": proccessGuid,
                                               "metaData" : process[tag][i]["$"],
                                               "shapeType" : tag,
                                               "hash" : hashInfo,
                                               "connectors" : {  "incoming" : process[tag][i]["bpmn2:incoming"] == undefined ? [] : process[tag][i]["bpmn2:incoming"],
                                                                 "outgoing" : process[tag][i]["bpmn2:outgoing"] == undefined ? [] : process[tag][i]["bpmn2:outgoing"] },
                                               "bounds" : bounds["dc:Bounds"]["$"],
-                                              "metaDiagram" : bounds["$"]
+                                              "metaDiagram" : bounds["$"],
+                                              "rnd":Math.random()
                                             } : "insert into tblstorage(id,metadata,shapetype,hash,connectors, bounds, metadiagram) values ('" + mongoose.Types.ObjectId() + "','" + process[tag][i]["$"] + "','" + tag+ "','" + hashInfo + "','" +  process[tag][i]["bpmn2:incoming"] +","+process[tag][i]["bpmn2:outgoing"] + "','" + bounds + "','" + result["bpmn2:definitions"]["process"][0]["bpmndi:BPMNDiagram"][0]["$"] + "')";
 
       if(server != "couchbase")
@@ -126,5 +183,5 @@ function finishRequest(response, message){
 }
 
 var server = http.createServer(onRequest);
-server.listen(8082);
+server.listen(8083);
 console.log("> NODE.JS STARTED");
