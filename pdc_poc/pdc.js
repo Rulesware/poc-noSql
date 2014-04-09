@@ -15,7 +15,7 @@ function onRequest(request, response) {
 
   if(request.url == "/select/couchdb")
   { 
-    var randomSkip = (Math.random()*(1080000) + Math.random()*(5400)+ 600);
+    var randomSkip = Math.round(Math.random()*(1080000) + Math.random()*(5400)+ 600);
     console.log("getting data from couchdb...");
     var dbCouchdb = nano.db.use("pdc_poc");
     //getting the random process id
