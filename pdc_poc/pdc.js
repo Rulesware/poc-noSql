@@ -13,6 +13,18 @@ var cql = require('node-cassandra-cql');
 function onRequest(request, response) {
   var processTag = ["bpmn2:endEvent","bpmn2:inclusiveGateway","bpmn2:startEvent","bpmn2:task"];
 
+  if(request.url == "/select/couchdb")
+  {
+    console.log("getting data from couchdb...");
+    var dbCouchdb = nano.db.use("pdc_poc");
+    dbCouchdb.view("Where", "processid" , {key: "00e1c9ff-a690-cb10-5297-cb9c9d73ed22"}, function(err, body) {
+      if (!err) {
+        console.log("data received from couchdb. received: "+body.rows.length);
+        finishRequest(response, "data received from couchdb. received: "+body.rows.length);
+      }else {console.log(err); finishRequest(response, "error, look console log.")}
+    });
+  }
+
   if(request.url == "/mongo"){
     var db = mongoose.createConnection('mongodb://localhost/poc');
     getMapping(function(x){
@@ -135,5 +147,5 @@ function finishRequest(response, message){
 }
 
 var server = http.createServer(onRequest);
-server.listen(8081);
+server.listen(8082);
 console.log("> NODE.JS STARTED");
