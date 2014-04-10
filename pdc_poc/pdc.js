@@ -12,6 +12,7 @@ var cql = require('node-cassandra-cql');
 
 function onRequest(request, response) {
   var processTag = ["bpmn2:endEvent","bpmn2:inclusiveGateway","bpmn2:startEvent","bpmn2:task"];
+  var couchdbResult = {};
 
   if(request.url == "/select/couchdb")
   { 
@@ -19,24 +20,50 @@ function onRequest(request, response) {
     console.log("getting data from couchdb...");
     var dbCouchdb = nano.db.use("pdc_poc");
     //getting the random process id
-    dbCouchdb.list({ skip: randomSkip, limit: 1 }, function(err, body) {
-      if (err) 
-      {
-        //getting the list of shapes for the random process.
-        console.log(body);
-        console.log(randomSkip);
-        finishRequest(response, "done !");
-        /*
-        dbCouchdb.view("Where", "processid" , {key: body.rows[0].processId}, function(err, body) {
+    dbCouchdb.view("Where", "processid", { skip: randomSkip, limit: 1}, function(err, body){
+      if (err) console.log(err);
+      else
+        dbCouchdb.view("Where", "processid" , {key: body.rows[0].value.processId }, function(err, body) {
           if (!err) {
+            couchdbResult = body.rows;
             console.log("data received from couchdb. received: "+body.rows.length);
+            console.log("random element N:"+randomSkip+1);
             finishRequest(response, "data received from couchdb. received: "+body.rows.length);
           }else {console.log(err); finishRequest(response, "error, look console log.")}
         });
-*/
-      } else console.log(err);
     });
   }
+
+  if(request.url == "/insert/couchdb")
+  {
+    var _id = Guid.raw();
+    console.log(couchdbResult.length);
+    var dbCouchdb = nano.db.use("pdc_poc");
+    couchdbResult[couchdbResult.length] = {
+                                              "_id": _id,
+                                              "id" : _id,
+                                              "processId": couchResult[0].processId,
+                                              "metaData" : couchResult[0].metaData,
+                                              "shapeType" : couchResult[0].shapeType,
+                                              "hash" : couchResult[0].hash,
+                                              "connectors" : couchResult[0].connectors,
+                                              "bounds" : couchResult[0].bounds,
+                                              "metaDiagram" : couchResult[0].metaDiagram
+                                            };
+    console.log(couchdbResult.length);
+    finishRequest(response, "done!");
+
+    /*
+    dbCouchdb.bulk({"docs": couchdbResult}, function(err){
+      if(err) console.log(err);
+      else 
+      {
+        finishRequest(response, "data inserted into couchdb!");
+      }
+    });    
+*/
+  }
+
     
 
   if(request.url == "/mongo"){
