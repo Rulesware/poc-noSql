@@ -86,7 +86,7 @@ function onRequest(request, response) {
                 if(!error) console.log("Element Inserted");
                 else console.log(error);
               });
-              finishRequest(response, "data received from couchdb. received: "+body.rows.length+". Inserted 1 new values.");
+              finishRequest(response, "data received from couchdb. Skip: "+randomSkip+", received: "+body.rows.length+". Inserted 1 new values.");
             }
             else console.log(err);
           });
