@@ -67,31 +67,30 @@ function onRequest(request, response) {
     case ("/select/couchdb"):
       var randomSkip = Math.round(Math.random()*(1080000) + Math.random()*(5400)+ 600);
       var dbCouchdb = nano.db.use("pdc_poc");
+      var newProccessId = 0;
       dbCouchdb.view("Where", "processid", { skip: randomSkip, limit: 1}, function(err, body){
-        var newProccessId = body.rows[0].value.processId;
+        newProccessId = body.rows[0].value.processId;
         if (!err) 
-          dbCouchdb.view("Where", "processid" , {key: body.rows[0].value.processId }, function(err, body) {
+          dbCouchdb.view("Where", "processid" , {key: newProccessId }, function(err, body) {
             if (!err) 
             {
               console.log("data received from couchdb. received: "+body.rows.length);
-              finishRequest(response, "data received from couchdb. received: "+body.rows.length+". Inserted 6 new values.");
-
-              getMapping(function(x){
-                var insert  = processData( x, processTag, "couchdb", newProccessId);
-                dbCouchdb.bulk({"docs": insert}, function(err){
-                  if(err) console.log(err);
-                  else console.log("Inserted: "+insert.length);
-                });
+              var hashInfo = Date.now();
+              var newElement = body.rows[0].value;
+              kHash(newElement.shapeType + Date.now(), hashInfo);              
+              var _id = Guid.raw();
+              newElement._id = _id;
+              newElement.id = _id;
+              newElement.hash = hashInfo;
+              dbCouchdb.insert(newElement, function(error, body){
+                if(!error) console.log("Element Inserted");
+                else console.log(error);
               });
+              finishRequest(response, "data received from couchdb. received: "+body.rows.length+". Inserted 1 new values.");
             }
-            else {
-              console.log(err); finishRequest(response, "error, getting the process shapes.")
-            }
+            else console.log(err);
           });
-        else
-        {
-          console.log(err);  finishRequest(response, "error, getting the random value.");
-        }
+        else console.log(err);
       });
     break;
 
