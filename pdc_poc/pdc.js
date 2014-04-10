@@ -20,7 +20,6 @@ function onRequest(request, response) {
 
   switch (request.url){
    
-
     case ("/couchdb"):
       var dbCouchdb = nano.db.use("pdc_poc");    
       getMapping(function(x){
