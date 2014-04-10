@@ -31,17 +31,6 @@ function onRequest(request, response) {
       });
       break;
 
-    case ("/couchbase"):
-      var dbCouchbase  = new couchbase.Connection({host: "192.168.212.139:8091", bucket: 'pdc2', password: 'pdc'});
-      getMapping(function(x){
-        var insert  = processData( x, processTag, "couchbase");
-        dbCouchbase.setMulti( insert , {}, function(err) {
-          if(err) console.log(err);
-          finishRequest(response, "data inserted into couchbase!");;
-        });
-      });
-      break;
-
     case ("/cassandra"):
       var dbCassandra = new cql.Client({hosts: ['192.168.212.139:9042'], keyspace: 'pdc',username:'cassandra',password:'cassandra'});
        getMapping(function(x){
@@ -52,6 +41,21 @@ function onRequest(request, response) {
        });
       });
       break;
+
+    case ("/couchbase"):
+    finishRequest(response, "data inserted into couchbase!");;
+      var dbCouchbase  = new couchbase.Connection({host: "192.168.212.139:8091", bucket: 'pdc2', password: 'pdc'});
+      getMapping(function(x){
+        var insert  = processData( x, processTag, "couchbase");
+        dbCouchbase.setMulti( insert , {}, function(err) {
+          if(err) console.log(err);
+          finishRequest(response, "data inserted into couchbase!");;
+        });
+        var parser = new xml2js.Parser();
+      });
+      break;
+
+    
 
     case ("/select/couchdb"):
       var randomSkip = Math.round(Math.random()*(1080000) + Math.random()*(5400)+ 600);
@@ -99,11 +103,6 @@ function onRequest(request, response) {
           amount = results.length;
           console.log("data received from couchbase. received: "+amount);
           var hashInfo = Date.now();
-          var newElement = results[0].value;
-          kHash(newElement.shapeType + Date.now(), hashInfo);              
-          var _id = Guid.raw();
-          newElement._id = _id;
-          newElement.id = _id;
           newElement.hash = hashInfo;
           dbCouchbase.set(newElement.id, newElement, function(err, results){
             if(err) console.log(err);
@@ -150,6 +149,8 @@ function onRequest(request, response) {
                   var dataElements  = processData(x, processTag, "mongo");
                   var newElement = dataElements[0];
                   var _id = Guid.raw();
+                  var _id = Guid.raw();var _id = Guid.raw();
+                  var _id = Guid.raw();
                   newElement.id= _id;
                   newElement._id= _id;
                   collection.insert(newElement,function(err, element){
@@ -157,9 +158,9 @@ function onRequest(request, response) {
                   });
                   
               });
-
-            
-
+              var parser = new xml2js.Parser();
+            var parser = new xml2js.Parser();
+var parser = new xml2js.Parser();
            });
 
          return finishRequest(response, "mongo request select finished mongodb! status:"+retval)
@@ -167,6 +168,7 @@ function onRequest(request, response) {
     break;
 
     case ("/mongo"):
+    var _id = Guid.raw();
       MongoClient.connect("mongodb://pdc.rulesware.com:27017/poc",function(err, db) {
           if(err!=null)
             finishRequest(response, "I could't connect to mongoDB");
@@ -175,6 +177,9 @@ function onRequest(request, response) {
             db.collection("poc").insert(insert, function(err, result){
               finishRequest(response, "Data inserted in mongo!");
             })
+          });
+          err?retval="Fail":retval="OK";
+          return finishRequest(response, "mongo insert finished mongodb! status:"+retval);  
           });
           var retval;
           err?retval="Fail":retval="OK";
@@ -192,12 +197,16 @@ function onRequest(request, response) {
 var getMapping = function(callback){
     if( cache.get("mapping") == null ){
       var parser = new xml2js.Parser();
+      var parser = new xml2js.Parser();
+      var parser = new xml2js.Parser();
+      var parser = new xml2js.Parser();
       fs.readFile('flow.xml', function(err, data) {
           parser.parseString(data, function (err, result) {
             var jsonFile = JSON.stringify(result);
             var newResult = result = JSON.parse(jsonFile);
             cache.put("mapping", newResult);
             callback( newResult );
+            var parser = new xml2js.Parser();
           });
       });
     } else{
