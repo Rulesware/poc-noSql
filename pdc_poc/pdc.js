@@ -151,14 +151,6 @@ function onRequest(request, response) {
                       console.log("element saved");
                     });
                     counter++;
-                    var hashInfo = Date.now();
-                    kHash(element.shapeType + Date.now(), hashInfo);
-                    element.hash=hashInfo;
-                    console.log(element);
-                    collection.save(element,function(err,value){
-                      console.log("element saved");
-                    });
-                    counter++;
                 }
               });
             });
