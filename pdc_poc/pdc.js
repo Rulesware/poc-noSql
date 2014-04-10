@@ -1,5 +1,4 @@
 var http = require("http");
-var mongoose = require('mongoose');
 var couchbase = require('couchbase');
 var nano = require('nano')('http://192.168.212.139:5984');
 var fs = require('fs'), xml2js = require('xml2js');
@@ -20,16 +19,7 @@ function onRequest(request, response) {
   var processTag = ["bpmn2:endEvent","bpmn2:inclusiveGateway","bpmn2:startEvent","bpmn2:task"];
 
   switch (request.url){
-    case ("/mongo"):
-      var db = mongoose.createConnection('mongodb://192.168.212.139/poc');
-      getMapping(function(x){
-          var insert  = processData( x, processTag, "mongo");
-          db.collection('poc').insert(insert, function(err){
-            finishRequest(response, "data inserted into mongodb!");
-            if(err) console.log(err);
-          });
-      });
-      break;
+   
 
     case ("/couchdb"):
       var dbCouchdb = nano.db.use("pdc_poc");    
@@ -137,30 +127,34 @@ function onRequest(request, response) {
           var results =[];
           //random process
           collection.findOne({rnd: {$gte: Math.random()}},{limit:1},function(err, result) {
-            var queryLimit = Math.floor(Math.random() * (1000 - 100) + 100);
+            var queryLimit = Math.floor(Math.random() * (1000 - 600) + 600);
             //query for child objects
             collection.find({processId:result.processId},{limit:queryLimit},function(err,shapes){
-              var counter =0;
-              shapes.each(function(error,element){
-                if (counter<5){
-                    var hashInfo = Date.now();
-                    kHash(element.shapeType + Date.now(), hashInfo);
-                    element.hash=hashInfo;
-                    console.log(element);
-                    collection.save(element,function(err,value){
-                      console.log("element saved");
-                    });
-                    counter++;
-                }
-              });
+            
             });
+
+              //inserting new object            
+              getMapping(function(x){
+                  var dataElements  = processData(x, processTag, "mongo");
+                  var newElement = dataElements[0];
+                  var _id = Guid.raw();
+                  newElement.id= _id;
+                  newElement._id= _id;
+                  collection.insert(newElement,function(err, element){
+                    console.log("element inserted");  
+                  });
+                  
+              });
+
+            
+
            });
 
          return finishRequest(response, "mongo request select finished mongodb! status:"+retval)
        });
     break;
 
-    case ("/insert/mongo"):
+    case ("/mongo"):
       MongoClient.connect("mongodb://pdc.rulesware.com:27017/poc",function(err, db) {
           if(err!=null)
             finishRequest(response, "I could't connect to mongoDB");
@@ -198,6 +192,8 @@ var getMapping = function(callback){
       callback( cache.get("mapping") );
     }
 }
+
+
 
 function processData(result, processTag, server, processId){
   var temp = getType(server);
@@ -265,5 +261,5 @@ function getRandomIndex(){
 }
 
 var server = http.createServer(onRequest);
-server.listen(8082);
+server.listen(8089);
 console.log("> NODE.JS STARTED");
