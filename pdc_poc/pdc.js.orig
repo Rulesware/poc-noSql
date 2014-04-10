@@ -13,7 +13,11 @@ var MongoClient = require('mongodb').MongoClient;
 
 function onRequest(request, response) {
   var nodeTime = require('nodetime').profile({
+<<<<<<< HEAD
+    accountKey: '477c61a9ca315479a539e2e71562ac2c4dd71e8f',
+=======
     accountKey: '477c61a9ca315479a539e2e71562ac2c4dd71e8f', 
+>>>>>>> d1d7d4085df448e7a4438ccf140e9b89957baa0b
     appName: 'Node.JS LinuxApp'
   });
 
@@ -23,7 +27,11 @@ function onRequest(request, response) {
     case ("/mongo"):
       var db = mongoose.createConnection('mongodb://192.168.212.139/poc');
       getMapping(function(x){
+<<<<<<< HEAD
+          var insert = processData( x, processTag, "mongo");
+=======
           var insert  = processData( x, processTag, "mongo");
+>>>>>>> d1d7d4085df448e7a4438ccf140e9b89957baa0b
           db.collection('poc').insert(insert, function(err){
             finishRequest(response, "data inserted into mongodb!");
             if(err) console.log(err);
@@ -32,9 +40,15 @@ function onRequest(request, response) {
       break;
 
     case ("/couchdb"):
+<<<<<<< HEAD
+      var dbCouchdb = nano.db.use("pdc_poc");
+      getMapping(function(x){
+        var insert = processData( x, processTag, "couchdb");
+=======
       var dbCouchdb = nano.db.use("pdc_poc");    
       getMapping(function(x){
         var insert  = processData( x, processTag, "couchdb");
+>>>>>>> d1d7d4085df448e7a4438ccf140e9b89957baa0b
         dbCouchdb.bulk({"docs": insert}, function(err){
           if(err) console.log(err);
           else finishRequest(response, "data inserted into couchdb!");
@@ -43,9 +57,15 @@ function onRequest(request, response) {
       break;
 
     case ("/couchbase"):
+<<<<<<< HEAD
+      var dbCouchbase = new couchbase.Connection({host: "192.168.212.139:8091", bucket: 'pdc2', password: 'pdc'});
+      getMapping(function(x){
+        var insert = processData( x, processTag, "couchbase");
+=======
       var dbCouchbase  = new couchbase.Connection({host: "192.168.212.139:8091", bucket: 'pdc2', password: 'pdc'});
       getMapping(function(x){
         var insert  = processData( x, processTag, "couchbase");
+>>>>>>> d1d7d4085df448e7a4438ccf140e9b89957baa0b
         dbCouchbase.setMulti( insert , {}, function(err) {
           if(err) console.log(err);
           finishRequest(response, "data inserted into couchbase!");;
@@ -56,10 +76,17 @@ function onRequest(request, response) {
     case ("/cassandra"):
       var dbCassandra = new cql.Client({hosts: ['192.168.212.139:9042'], keyspace: 'test',username:'cassandra',password:'cassandra'});
        getMapping(function(x){
+<<<<<<< HEAD
+        var insert = processData( x, processTag, "cassandra");
+        dbCassandra.executeBatch (insert, 1, {}, function(err) {
+          if(err) console.log(err);
+          finishRequest(response, "data inserted into cassandra!");
+=======
         var insert  = processData( x, processTag, "cassandra");
         dbCassandra.executeBatch (insert, 1, {}, function(err) {
           if(err) console.log(err);
           finishRequest(response, "data inserted into cassandra!");         
+>>>>>>> d1d7d4085df448e7a4438ccf140e9b89957baa0b
        });
       });
       break;
@@ -69,6 +96,7 @@ function onRequest(request, response) {
       var dbCouchdb = nano.db.use("pdc_poc");
       dbCouchdb.view("Where", "processid", { skip: randomSkip, limit: 1}, function(err, body){
         var newProccessId = body.rows[0].value.processId;
+<<<<<<< HEAD
         if (!err) 
           dbCouchdb.view("Where", "processid" , {key: body.rows[0].value.processId }, function(err, body) {
             if (!err) 
@@ -77,26 +105,66 @@ function onRequest(request, response) {
               finishRequest(response, "data received from couchdb. received: "+body.rows.length+". Inserted 6 new values.");
 
               getMapping(function(x){
-                var insert  = processData( x, processTag, "couchdb", newProccessId);
+                var insert = processData( x, processTag, "couchdb", newProccessId);
                 dbCouchdb.bulk({"docs": insert}, function(err){
                   if(err) console.log(err);
-                  else console.log("Inserted: "+insert.length);
+                  else console.log("New shapes in process: "+insert.length);
                 });
               });
             }
-            else {
-              console.log(err); finishRequest(response, "error, getting the process shapes.")
+            else 
+            {
+              console.log(err); finishRequest(response, "error, look console log.")
             }
-          });
+        });
         else
         {
-          console.log(err);  finishRequest(response, "error, getting the random value.");
+          console.log(err);
+          finishRequest(response, "error, getting the random value.");
         }
+=======
+        if (err) console.log(err);
+        else
+          dbCouchdb.view("Where", "processid" , {key: body.rows[0].value.processId }, function(err, body) {
+          if (!err) {
+            console.log("data received from couchdb. received: "+body.rows.length);
+            finishRequest(response, "data received from couchdb. received: "+body.rows.length);
 
+            getMapping(function(x){
+              var insert  = processData( x, processTag, "couchdb", newProccessId);
+              dbCouchdb.bulk({"docs": insert}, function(err){
+                if(err) console.log(err);
+                else finishRequest(response, "data inserted into couchdb!");
+              });
+            });
+          }
+          else {
+            console.log(err); finishRequest(response, "error, look console log.")
+          }
+        });
+>>>>>>> d1d7d4085df448e7a4438ccf140e9b89957baa0b
       });
     break;
 
     case ("/select/couchbase"):
+<<<<<<< HEAD
+      var dbCouchbase = new couchbase.Connection({host: "192.168.212.139:8091", bucket: 'pdc2', password: 'pdc'});
+      var q = {processId : "000f32ff-0ba5-abfd-4a5b-cab0f79a17e3"};
+      var randomValue = parseInt(getRandomIndex());
+      //console.log(getRandomIndex());
+      dbCouchbase.view('dev_1', 'where').query({ limit:1, skip: randomValue}, function(err, results) {
+        dbCouchbase.view('dev_1', 'where').query({ options: q, limit: 10000 }, function(err, results) {
+
+          getMapping(function(x){
+            var insert = processData( x, processTag, "couchbase", q.processId);
+            dbCouchbase.setMulti( insert , {}, function(err) {
+              if(err) console.log(err);
+              finishRequest(response, "data inserted into couchbase!");;
+            });
+          });
+
+          //finishRequest(response, JSON.stringify("founded: " + results.length + " documents") );
+=======
       var dbCouchbase  = new couchbase.Connection({host: "192.168.212.139:8091", bucket: 'pdc2', password: 'pdc'});
       var q = {processId : "000f32ff-0ba5-abfd-4a5b-cab0f79a17e3"};
       var randomValue =  parseInt(getRandomIndex() / 10000);
@@ -111,6 +179,7 @@ function onRequest(request, response) {
               finishRequest(response, "data inserted into couchbase!");;
             });
           });
+>>>>>>> d1d7d4085df448e7a4438ccf140e9b89957baa0b
         });
       });
       break;
@@ -122,7 +191,11 @@ function onRequest(request, response) {
        dbCassandra.execute(query, [],
           function(err, result) {
             if (err) console.log(err);
+<<<<<<< HEAD
+            else finishRequest(response, "Total of records: " + result.rows[0].count.low );
+=======
             else finishRequest(response, "Total of records: " + result.rows[0].count.low );   
+>>>>>>> d1d7d4085df448e7a4438ccf140e9b89957baa0b
           }
         );
       });
@@ -152,14 +225,6 @@ function onRequest(request, response) {
                       console.log("element saved");
                     });
                     counter++;
-                    var hashInfo = Date.now();
-                    kHash(element.shapeType + Date.now(), hashInfo);
-                    element.hash=hashInfo;
-                    console.log(element);
-                    collection.save(element,function(err,value){
-                      console.log("element saved");
-                    });
-                    counter++;
                 }
               });
             });
@@ -174,14 +239,22 @@ function onRequest(request, response) {
           if(err!=null)
             finishRequest(response, "I could't connect to mongoDB");
           getMapping(function(x){
+<<<<<<< HEAD
+            var insert = processData(x, processTag, "mongo");
+=======
             var insert  = processData(x, processTag, "mongo");
+>>>>>>> d1d7d4085df448e7a4438ccf140e9b89957baa0b
             db.collection("poc").insert(insert, function(err, result){
               finishRequest(response, "Data inserted in mongo!");
             })
           });
           var retval;
           err?retval="Fail":retval="OK";
+<<<<<<< HEAD
+          return finishRequest(response, "mongo insert finished mongodb! status:"+retval);
+=======
           return finishRequest(response, "mongo insert finished mongodb! status:"+retval);  
+>>>>>>> d1d7d4085df448e7a4438ccf140e9b89957baa0b
           });
     break;
 
@@ -243,9 +316,13 @@ function processData(result, processTag, server, processId){
                                               "bounds" : bounds["dc:Bounds"]["$"],
                                               "metaDiagram" : bounds["$"],
                                               "rnd":Math.random()
+<<<<<<< HEAD
                                             } : "insert into tblpdc(id,processid,metadata,shapetype,hash,connectors, bounds, metadiagram) values ('" + mongoose.Types.ObjectId() + "','" + proccessGuid + "','" + JSON.stringify(process[tag][i]["$"]) + "','" + tag+ "','" + hashInfo + "','" + ( JSON.stringify( process[tag][i]["bpmn2:incoming"] ) + " " + JSON.stringify(process[tag][i]["bpmn2:outgoing"]) ) + "','" + JSON.stringify(bounds) + "','" + JSON.stringify(result["bpmn2:definitions"]["process"][0]["bpmndi:BPMNDiagram"][0]["$"]) + "')";                                            
+=======
+                                            } : "insert into tblpdc(id,processid,metadata,shapetype,hash,connectors, bounds, metadiagram) values ('" + mongoose.Types.ObjectId() + "','" + proccessGuid + "','" + JSON.stringify(process[tag][i]["$"]) + "','" + tag+ "','" + hashInfo + "','" + ( JSON.stringify( process[tag][i]["bpmn2:incoming"] ) + " " + JSON.stringify(process[tag][i]["bpmn2:outgoing"])  ) + "','" + JSON.stringify(bounds) + "','" + JSON.stringify(result["bpmn2:definitions"]["process"][0]["bpmndi:BPMNDiagram"][0]["$"]) + "')";
       console.log(data);
       console.log("-");
+>>>>>>> d1d7d4085df448e7a4438ccf140e9b89957baa0b
       if(server != "couchbase")
         temp.push(data);
       else
