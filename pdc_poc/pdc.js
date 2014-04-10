@@ -141,15 +141,25 @@ function onRequest(request, response) {
             //query for child objects
             collection.find({processId:result.processId},{limit:queryLimit},function(err,shapes){
               var counter =0;
-              collection.count(function(err, count) {
-                console.log("count = "+ count);
-              });
-
-              getMapping(function(x){
-                var insert  = processData(x, processTag, "mongo");
-                collection.insert(insert, function(err, result){
-                  console.log("Data inserted in mongo! Count: "+insert.length);
-                })
+              shapes.each(function(error,element){
+                if (counter<5){
+                    var hashInfo = Date.now();
+                    kHash(element.shapeType + Date.now(), hashInfo);
+                    element.hash=hashInfo;
+                    console.log(element);
+                    collection.save(element,function(err,value){
+                      console.log("element saved");
+                    });
+                    counter++;
+                    var hashInfo = Date.now();
+                    kHash(element.shapeType + Date.now(), hashInfo);
+                    element.hash=hashInfo;
+                    console.log(element);
+                    collection.save(element,function(err,value){
+                      console.log("element saved");
+                    });
+                    counter++;
+                }
               });
             });
            });
@@ -232,7 +242,7 @@ function processData(result, processTag, server, processId){
                                               "bounds" : bounds["dc:Bounds"]["$"],
                                               "metaDiagram" : bounds["$"],
                                               "rnd":Math.random()
-                                            } : "insert into tblpdc(id,processid,metadata,shapetype,hash,connectors, bounds, metadiagram) values ('" + mongoose.Types.ObjectId() + "','" + proccessGuid + "','" + JSON.stringify(process[tag][i]["$"]) + "','" + tag+ "','" + hashInfo + "','" + ( JSON.stringify( process[tag][i]["bpmn2:incoming"] ) + " " + JSON.stringify(process[tag][i]["bpmn2:outgoing"]) ) + "','" + JSON.stringify(bounds) + "','" + JSON.stringify(result["bpmn2:definitions"]["process"][0]["bpmndi:BPMNDiagram"][0]["$"]) + "')";
+                                            } : "insert into tblpdc(id,processid,metadata,shapetype,hash,connectors, bounds, metadiagram) values ('" + mongoose.Types.ObjectId() + "','" + proccessGuid + "','" + JSON.stringify(process[tag][i]["$"]) + "','" + tag+ "','" + hashInfo + "','" + ( JSON.stringify( process[tag][i]["bpmn2:incoming"] ) + " " + JSON.stringify(process[tag][i]["bpmn2:outgoing"]) ) + "','" + JSON.stringify(bounds) + "','" + JSON.stringify(result["bpmn2:definitions"]["process"][0]["bpmndi:BPMNDiagram"][0]["$"]) + "')";                                            
       if(server != "couchbase")
         temp.push(data);
       else
