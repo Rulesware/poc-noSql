@@ -43,7 +43,7 @@ function onRequest(request, response) {
       break;
 
     case ("/cassandra"):
-      var dbCassandra = new cql.Client({hosts: ['192.168.212.139:9042'], keyspace: 'test',username:'cassandra',password:'cassandra'});
+      var dbCassandra = new cql.Client({hosts: ['192.168.212.139:9042'], keyspace: 'pdc',username:'cassandra',password:'cassandra'});
        getMapping(function(x){
         var insert  = processData( x, processTag, "cassandra");
         dbCassandra.executeBatch (insert, 1, {}, function(err) {
@@ -273,5 +273,5 @@ function getRandomIndex(){
 }
 
 var server = http.createServer(onRequest);
-server.listen(8089);
+server.listen(8082);
 console.log("> NODE.JS STARTED");

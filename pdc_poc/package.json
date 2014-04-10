@@ -1,0 +1,27 @@
+{
+  "name": "poc_pdc",
+  "version": "0.0.1",
+  "dependencies": {
+    "buffered-reader": "1.0.1",
+    "couchbase": "1.2.1",
+    "cradle": "0.6.7",
+    "guid": "0.0.12",
+    "http": "0.0.0",
+    "json-sql": "0.0.3",
+    "underscore": "1.5.2",
+    "k-hash": "0.0.0",
+    "lorem-ipsum": "1.0.1",
+    "measured": "0.1.5",
+    "memory-cache": "0.0.5",
+    "mongodb": "1.4.0",
+    "mongoose": "3.8.8",
+    "nano": "5.7.1",
+    "request": "2.33.0",
+    "node-cassandra-cql": "0.5.0",
+    "node-hash": "1.1.1",
+    "nodetime": "0.8.15",
+    "sync": "0.2.2",
+    "xml2js": "0.4.2",
+    "lodash-node": "^2.4.1"
+  }
+}
