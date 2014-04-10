@@ -94,18 +94,20 @@ function onRequest(request, response) {
     case ("/select/couchbase"):
       var dbCouchbase  = new couchbase.Connection({host: "192.168.212.139:8091", bucket: 'pdc2', password: 'pdc'});
       var q = {processId : "000f32ff-0ba5-abfd-4a5b-cab0f79a17e3"};
-      var randomValue =  parseInt(getRandomIndex() / 10000);
-      var pid = 0;
+      var randomValue =  parseInt(getRandomIndex());
+      //console.log(getRandomIndex());
       dbCouchbase.view('dev_1', 'where').query({ limit:1, skip: randomValue}, function(err, results) {
-        pid = (results[0].value.processId);
-        dbCouchbase.view('dev_1', 'where').query({ options: { processId: pid}, limit: 10000 }, function(err, results) {
+        dbCouchbase.view('dev_1', 'where').query({ options: q, limit: 10000 }, function(err, results) {
 
           getMapping(function(x){
             var insert  = processData( x, processTag, "couchbase", q.processId);
             dbCouchbase.setMulti( insert , {}, function(err) {
+              if(err) console.log(err);
               finishRequest(response, "data inserted into couchbase!");;
             });
           });
+
+          //finishRequest(response, JSON.stringify("founded: " + results.length + " documents") );
         });
       });
       break;
