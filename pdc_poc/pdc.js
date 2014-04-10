@@ -74,7 +74,8 @@ function onRequest(request, response) {
           dbCouchdb.view("Where", "processid" , {key: newProccessId }, function(err, body) {
             if (!err) 
             {
-              console.log("data received from couchdb. received: "+body.rows.length);
+              var amount = body.rows.length;
+              console.log("data received from couchdb. received: ");
               var hashInfo = Date.now();
               var newElement = body.rows[0].value;
               kHash(newElement.shapeType + Date.now(), hashInfo);              
@@ -83,10 +84,12 @@ function onRequest(request, response) {
               newElement.id = _id;
               newElement.hash = hashInfo;
               dbCouchdb.insert(newElement, function(error, body){
-                if(!error) console.log("Element Inserted");
+                if(!error){
+                 console.log("Element Inserted");
+                 finishRequest(response, "data received from couchdb. Skip: "+randomSkip+", received: "+amount+". Inserted 1 new values.");
+               }
                 else console.log(error);
               });
-              finishRequest(response, "data received from couchdb. Skip: "+randomSkip+", received: "+body.rows.length+". Inserted 1 new values.");
             }
             else console.log(err);
           });
@@ -96,18 +99,29 @@ function onRequest(request, response) {
 
     case ("/select/couchbase"):
       var dbCouchbase  = new couchbase.Connection({host: "192.168.212.139:8091", bucket: 'pdc2', password: 'pdc'});
-      var q = {processId : "000f32ff-0ba5-abfd-4a5b-cab0f79a17e3"};
-      var randomValue =  parseInt(getRandomIndex() / 10000);
+      var randomValue =  parseInt(getRandomIndex());
       var pid = 0;
-      dbCouchbase.view('dev_1', 'where').query({ limit:1, skip: randomValue}, function(err, results) {
+      var amount = 0;
+      dbCouchbase.view('Where', 'processid').query({ limit:1, skip: randomValue}, function(err, results) {
         pid = (results[0].value.processId);
-        dbCouchbase.view('dev_1', 'where').query({ options: { processId: pid}, limit: 10000 }, function(err, results) {
-
-          getMapping(function(x){
-            var insert  = processData( x, processTag, "couchbase", q.processId);
-            dbCouchbase.setMulti( insert , {}, function(err) {
-              finishRequest(response, "data inserted into couchbase!");;
-            });
+        console.log(pid);
+        dbCouchbase.view('Where', 'processid').query({ key: pid }, function(err, results) {
+          console.log(err);
+          amount = results.length;
+          console.log("data received from couchbase. received: "+amount);
+          var hashInfo = Date.now();
+          var newElement = results[0].value;
+          kHash(newElement.shapeType + Date.now(), hashInfo);              
+          var _id = Guid.raw();
+          newElement._id = _id;
+          newElement.id = _id;
+          newElement.hash = hashInfo;
+          dbCouchbase.set(newElement.id, newElement, function(err, results){
+            if(err) console.log(err);
+            else {
+              console.log("element Inserted");
+              finishRequest(response, "data received from couchbase. Skip: "+randomValue+", received: "+amount+". Inserted 1 new values.");
+            }
           });
         });
       });
