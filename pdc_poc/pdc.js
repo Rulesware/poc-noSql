@@ -150,6 +150,9 @@ function onRequest(request, response) {
                   var dataElements  = processData(x, processTag, "mongo");
                   var newElement = dataElements[0];
                   var _id = Guid.raw();
+                  //asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd
+//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd
+//asdfasdfasdfadsfasd
                   newElement.id= _id;
                   newElement._id= _id;
                   collection.insert(newElement,function(err, element){
@@ -182,6 +185,9 @@ function onRequest(request, response) {
           });
     break;
 
+//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd
+//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd
+//asdfasdfasdfadsfasd
     default:
       finishRequest(response, "404 Error");
       break;
@@ -196,14 +202,36 @@ var getMapping = function(callback){
           parser.parseString(data, function (err, result) {
             var jsonFile = JSON.stringify(result);
             var newResult = result = JSON.parse(jsonFile);
+            //asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd
+//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd
+//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd
+//asdfasdfasdfadsfasd
             cache.put("mapping", newResult);
             callback( newResult );
           });
+          //asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd
+//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd
+//asdfasdfasdfadsfasd
       });
+      //asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd
+//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd
+//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd
+//asdfasdfasdfadsfasd
     } else{
       callback( cache.get("mapping") );
     }
-}
+}//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd
+//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd
+//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd
+//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd
+//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd
+//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd
+//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd
+//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd
+//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd
+//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd
+//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd
+//asdfasdfasdfadsfasd
 
 
 
@@ -228,7 +256,14 @@ function processData(result, processTag, server, processId){
               bounds = shape;
           })
         });
-
+//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd
+//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd
+//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd
+//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd
+//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd
+//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd
+//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd
+//asdfasdfasdfadsfasd
       var _id = Guid.raw();
       var data = (server != "cassandra") ? {
                                               "_id": _id,
@@ -261,12 +296,24 @@ function getType(server){
   }
 }
 
+//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd
+//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd
+//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd
+//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd
+//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd//asdfasdfasdfadsfasd
+//asdfasdfasdfadsfasd
+//asdfasdfasdfadsfasd
 function finishRequest(response, message){
   //console.log(message);
   response.writeHead(200, {"Content-Type": "text/plain"});
   response.write(message);
   response.end();
 }
+
+
+//asdfasdfasdfadsfasd
+
+
 
 function getRandomIndex(){
   return Math.round(Math.random()*(1080000) + Math.random()*(5400)+ 600);
