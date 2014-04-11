@@ -100,15 +100,28 @@ function onRequest(request, response) {
       break;
 
     case ("/select/cassandra"):
-      var dbCassandra = new cql.Client({hosts: ['192.168.212.139:9042'], keyspace: 'test',username:'cassandra',password:'cassandra'});
-       getMapping(function(x){
-       var query = "select count(*) from tblstorage where processid = 'bdaf4fd7-c482-a3fc-9999-440849436610' ALLOW FILTERING;";
-       dbCassandra.execute(query, [],
-          function(err, result) {
-            if (!err) finishRequest(response, "Total of records: " + result.rows[0].count.low );
+      var dbCassandra = new cql.Client({hosts: ['192.168.212.139:9042'], keyspace: 'pdc',username:'cassandra',password:'cassandra'});
+      //var query = "select count(*) from tblstorage where processid = 'bdaf4fd7-c482-a3fc-9999-440849436610' ALLOW FILTERING;";
+      var randomSkip = Math.round(Math.random()*(97000));
+      var query = "SELECT * FROM tblstorage LIMIT "+randomSkip;
+      dbCassandra.execute(query, [],
+        function(err, result) {
+          if (!err) {
+            var pid = result.rows[result.rows.length-1].processid;
+            query = "SELECT * FROM tblstorage WHERE processid = '"+pid+"' ALLOW FILTERING";
+            dbCassandra.execute(query, [], function(err, results){
+              var hashInfo = Date.now();
+              var newElement = result.rows[0];
+              kHash(newElement.shapeType + Date.now(), hashInfo);
+              //inserting new element
+              query = "insert into tblstorage(id,processid,metadata,shapetype,hash,connectors, bounds, metadiagram) values ('" + Guid.raw() + "','" + pid + "','" + newElement.metadata + "','" + newElement.shapetype+ "','" + hashInfo + "','" + newElement.connectors + "','" + newElement.bounds + "','" + newElement.metadiagram+"')";
+              dbCassandra.execute(query, [], function(err, result){
+                finishRequest(response, "done!");
+              });
+            });
           }
-        );
-      });
+        }
+      );
     break;
 
     case ("/select/mongo"):
@@ -127,11 +140,13 @@ function onRequest(request, response) {
             //inserting new object
             shapes.toArray(function(err,results){
               var newElement = results[0];
+              var hashInfo = Date.now();
+              kHash(newElement.shapeType + Date.now(), hashInfo);
               var _id = Guid.raw();
               newElement.id= _id;
               newElement._id= _id;
               collection.insert(newElement,function(err, element){
-                finishRequest(response, "mongo request select finished mongodb! status:"+retval)
+                finishRequest(response, "mongo request select finished mongodb! status:"+retval);
               });  
             });
           });
@@ -246,4 +261,3 @@ function getRandomIndex(){
 
 var server = http.createServer(onRequest);
 server.listen(8082);
-console.log("> NODE.JS STARTED");
