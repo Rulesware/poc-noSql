@@ -25,8 +25,7 @@ function onRequest(request, response) {
       getMapping(function(x){
         var insert = processData( x, processTag, "couchdb");
         dbCouchdb.bulk({"docs": insert}, function(err){
-          if(err) console.log(err);
-          else finishRequest(response, "data inserted into couchdb!");
+          if(!err) finishRequest(response, "data inserted into couchdb!");
         });
       });
       break;
@@ -36,8 +35,7 @@ function onRequest(request, response) {
       getMapping(function(x){
         var insert = processData( x, processTag, "couchbase");
         dbCouchbase.setMulti( insert , {}, function(err) {
-          if(err) console.log(err);
-          finishRequest(response, "data inserted into couchbase!");;
+          if(!err) finishRequest(response, "data inserted into couchbase!");
         });
       });
       break;
@@ -47,8 +45,7 @@ function onRequest(request, response) {
        getMapping(function(x){
         var insert = processData( x, processTag, "cassandra");
         dbCassandra.executeBatch (insert, 1, {}, function(err) {
-          if(err) console.log(err);
-          finishRequest(response, "data inserted into cassandra!");
+          if(!err) finishRequest(response, "data inserted into cassandra!");
        });
       });
       break;
@@ -64,7 +61,6 @@ function onRequest(request, response) {
             if (!err)
             {
               var amount = body.rows.length;
-              console.log("data received from couchdb. received: ");
               var hashInfo = Date.now();
               var newElement = body.rows[0].value;
               kHash(newElement.shapeType + Date.now(), hashInfo);
@@ -73,16 +69,10 @@ function onRequest(request, response) {
               newElement.id = _id;
               newElement.hash = hashInfo;
               dbCouchdb.insert(newElement, function(error, body){
-                if(!error){
-                 console.log("Element Inserted");
-                 finishRequest(response, "data received from couchdb. Skip: "+randomSkip+", received: "+amount+". Inserted 1 new values.");
-               }
-                else console.log(error);
+                if(!error) finishRequest(response, "data received from couchdb. Skip: "+randomSkip+", received: "+amount+". Inserted 1 new values.");
               });
             }
-            else console.log(err);
           });
-        else console.log(err);
       });
     break;
 
@@ -93,11 +83,8 @@ function onRequest(request, response) {
       var amount = 0;
       dbCouchbase.view('Where', 'processid').query({ limit:1, skip: randomValue}, function(err, results) {
         pid = (results[0].value.processId);
-        console.log(pid);
         dbCouchbase.view('Where', 'processid').query({ key: pid }, function(err, results) {
-          console.log(err);
           amount = results.length;
-          console.log("data received from couchbase. received: "+amount);
           var hashInfo = Date.now();
           var newElement = results[0].value;
           kHash(newElement.shapeType + Date.now(), hashInfo);
@@ -106,11 +93,7 @@ function onRequest(request, response) {
           newElement.id = _id;
           newElement.hash = hashInfo;
           dbCouchbase.set(newElement.id, newElement, function(err, results){
-            if(err) console.log(err);
-            else {
-              console.log("element Inserted");
-              finishRequest(response, "data received from couchbase. Skip: "+randomValue+", received: "+amount+". Inserted 1 new values.");
-            }
+            if(!err) finishRequest(response, "data received from couchbase. Skip: "+randomValue+", received: "+amount+". Inserted 1 new values.");
           });
         });
       });
@@ -122,8 +105,7 @@ function onRequest(request, response) {
        var query = "select count(*) from tblstorage where processid = 'bdaf4fd7-c482-a3fc-9999-440849436610' ALLOW FILTERING;";
        dbCassandra.execute(query, [],
           function(err, result) {
-            if (err) console.log(err);
-            else finishRequest(response, "Total of records: " + result.rows[0].count.low );
+            if (!err) finishRequest(response, "Total of records: " + result.rows[0].count.low );
           }
         );
       });
@@ -131,38 +113,29 @@ function onRequest(request, response) {
 
     case ("/select/mongo"):
       MongoClient.connect("mongodb://pdc.rulesware.com/poc",function(err, db) {
-         var retval;
-         err?retval="Fail":retval="OK";
-         var collection = db.collection("poc");
-         if(collection=="undefined")
+        var retval;
+        err?retval="Fail":retval="OK";
+        var collection = db.collection("poc");
+        if(collection=="undefined")
           return finishRequest(response, "I couldn't find any collection available @.@");
-          var results =[];
-          //random process
-          collection.findOne({rnd: {$gte: Math.random()}},{limit:1},function(err, result) {
-            var queryLimit = Math.floor(Math.random() * (1000 - 600) + 600);
-            //query for child objects
-            collection.find({processId:result.processId},{limit:queryLimit},function(err,shapes){
-            
+        var results =[];
+        //random process
+        collection.findOne({rnd: {$gte: Math.random()}},{limit:1},function(err, result) {
+          var queryLimit = Math.floor(Math.random() * (1000 - 100) + 100);
+          //query for child objects
+          collection.find({processId:result.processId},{limit:queryLimit},function(err,shapes){
+            //inserting new object
+            shapes.toArray(function(err,results){
+              var newElement = results[0];
+              var _id = Guid.raw();
+              newElement.id= _id;
+              newElement._id= _id;
+              collection.insert(newElement,function(err, element){
+                finishRequest(response, "mongo request select finished mongodb! status:"+retval)
+              });  
             });
-
-              //inserting new object
-              getMapping(function(x){
-                  var dataElements = processData(x, processTag, "mongo");
-                  var newElement = dataElements[0];
-                  var _id = Guid.raw();
-                  newElement.id= _id;
-                  newElement._id= _id;
-                  collection.insert(newElement,function(err, element){
-                    console.log("element inserted");
-                  });
-                  
-              });
-
-            
-
-           });
-
-         return finishRequest(response, "mongo request select finished mongodb! status:"+retval)
+          });
+        });
        });
     break;
 
@@ -210,10 +183,10 @@ var getMapping = function(callback){
 function processData(result, processTag, server, processId){
   var temp = getType(server);
   var proccessGuid = (processId == undefined) ? Guid.raw() : processId;
-  //var limit = 1;
+  var limit = Math.round(Math.random(900)+100);
 
   var process = result["bpmn2:definitions"]["process"][0]["bpmn2:process"][0];
-  //for(var i=0;i<limit;i++)
+  for(var i=0;i<limit;i++)
   _.each(processTag, function(tag){
     _.each(process[tag], function(t,i){
       var shapes = result["bpmn2:definitions"]["process"][0]["bpmndi:BPMNDiagram"][0]["bpmndi:BPMNPlane"][0]["bpmndi:BPMNShape"];
@@ -262,7 +235,6 @@ function getType(server){
 }
 
 function finishRequest(response, message){
-  //console.log(message);
   response.writeHead(200, {"Content-Type": "text/plain"});
   response.write(message);
   response.end();
