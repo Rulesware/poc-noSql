@@ -51,7 +51,7 @@ function onRequest(request, response) {
       break;
 
     case ("/select/couchdb"):
-      var randomSkip = Math.round(Math.random()*(1080000) + Math.random()*(5400)+ 600);
+      var randomSkip = parseInt(getRandomIndex());
       var dbCouchdb = nano.db.use("pdc_poc");
       var newProccessId = 0;
       dbCouchdb.view("Where", "processid", { skip: randomSkip, limit: 1}, function(err, body){
@@ -102,7 +102,7 @@ function onRequest(request, response) {
     case ("/select/cassandra"):
       var dbCassandra = new cql.Client({hosts: ['192.168.212.139:9042'], keyspace: 'pdc',username:'cassandra',password:'cassandra'});
       //var query = "select count(*) from tblstorage where processid = 'bdaf4fd7-c482-a3fc-9999-440849436610' ALLOW FILTERING;";
-      var randomSkip = Math.round(Math.random()*(97000));
+      var randomSkip =  parseInt(getRandomIndex());
       var query = "SELECT * FROM tblstorage LIMIT "+randomSkip;
       dbCassandra.execute(query, [],
         function(err, result) {
@@ -134,9 +134,9 @@ function onRequest(request, response) {
         var results =[];
         //random process
         collection.findOne({rnd: {$gte: Math.random()}},{limit:1},function(err, result) {
-          var queryLimit = Math.floor(Math.random() * (1000 - 100) + 100);
+          //var queryLimit = Math.floor(Math.random() * (1000 - 100) + 100);
           //query for child objects
-          collection.find({processId:result.processId},{limit:queryLimit},function(err,shapes){
+          collection.find({processId:result.processId},{},function(err,shapes){
             //inserting new object
             shapes.toArray(function(err,results){
               var newElement = results[0];
@@ -198,7 +198,7 @@ var getMapping = function(callback){
 function processData(result, processTag, server, processId){
   var temp = getType(server);
   var proccessGuid = (processId == undefined) ? Guid.raw() : processId;
-  var limit = Math.round(Math.random(900)+100);
+  var limit = Math.round((Math.random(900)+100)/6);
 
   var process = result["bpmn2:definitions"]["process"][0]["bpmn2:process"][0];
   for(var i=0;i<limit;i++)
